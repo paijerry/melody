@@ -223,7 +223,7 @@ func (m *Melody) BroadcastCustomMessage(fn func(*Session) ([]byte, bool)) error 
 	m.hub.rwmutex.RLock()
 	for s := range m.hub.sessions {
 		if m, ok := fn(s); ok {
-			s.writeMessage(m)
+			s.writeMessage(&envelope{t: websocket.TextMessage, msg: m})
 		}
 	}
 	m.hub.rwmutex.RUnlock()
