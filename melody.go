@@ -214,6 +214,20 @@ func (m *Melody) Broadcast(msg []byte) error {
 	return nil
 }
 
+// RangeSession range all sessions to do your func.
+func (m *Melody) RangeSession(fn func(*Session)) error {
+	if m.hub.closed() {
+		return errors.New("melody instance is closed")
+	}
+
+	m.hub.rwmutex.RLock()
+	for s := range m.hub.sessions {
+		fn(s)
+	}
+	m.hub.rwmutex.RUnlock()
+	return nil
+}
+
 // BroadcastCustomMessage broadcasts a custom text message to all sessions that fn returns true for.
 func (m *Melody) BroadcastCustomMessage(fn func(*Session) ([]byte, bool)) error {
 	if m.hub.closed() {
