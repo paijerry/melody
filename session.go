@@ -18,6 +18,7 @@ type Session struct {
 	melody  *Melody
 	open    bool
 	rwmutex *sync.RWMutex
+	keyLock *sync.RWMutex
 }
 
 func (s *Session) writeMessage(message *envelope) {
@@ -187,6 +188,10 @@ func (s *Session) CloseWithMsg(msg []byte) error {
 // Set is used to store a new key/value pair exclusivelly for this session.
 // It also lazy initializes s.Keys if it was not used previously.
 func (s *Session) Set(key string, value interface{}) {
+
+	s.keyLock.Lock()
+	defer s.keyLock.Unlock()
+
 	if s.Keys == nil {
 		s.Keys = make(map[string]interface{})
 	}
@@ -197,6 +202,10 @@ func (s *Session) Set(key string, value interface{}) {
 // Get returns the value for the given key, ie: (value, true).
 // If the value does not exists it returns (nil, false)
 func (s *Session) Get(key string) (value interface{}, exists bool) {
+
+	s.keyLock.RLock()
+	defer s.keyLock.RUnlock()
+
 	if s.Keys != nil {
 		value, exists = s.Keys[key]
 	}
